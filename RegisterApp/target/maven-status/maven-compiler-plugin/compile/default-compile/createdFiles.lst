@@ -1,0 +1,11 @@
+com\example\UserManager.class
+com\example\GraphHelper.class
+com\example\AzureCredentials.class
+com\example\NgrokUrlFetcher.class
+com\example\UserManagerTest.class
+com\example\AzureUserManager.class
+com\example\GraphWebhookServlet.class
+com\example\PasswordUtil.class
+com\example\SubscriptionManager.class
+com\example\WebhookInitializer.class
+com\example\RegisterServlet.class
