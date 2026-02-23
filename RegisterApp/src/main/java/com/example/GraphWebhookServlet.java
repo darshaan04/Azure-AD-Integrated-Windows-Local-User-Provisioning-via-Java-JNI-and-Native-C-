@@ -42,7 +42,6 @@ public class GraphWebhookServlet extends HttpServlet {
         System.out.println("Content-Type: " + contentType);
         System.out.println("Content-Length: " + contentLength);
 
-        // 1. Check validation token in URL query parameter
         String validationTokenParam = req.getParameter("validationToken");
         if (validationTokenParam != null && !validationTokenParam.trim().isEmpty()) {
             System.out.println("Validation token found in query parameter: " + validationTokenParam);
@@ -53,7 +52,6 @@ public class GraphWebhookServlet extends HttpServlet {
             return;
         }
 
-        // 2. Check validation token in plain text POST body
         if ("text/plain".equalsIgnoreCase(contentType) && contentLength > 0) {
             String validationTokenBody = req.getReader().lines().collect(Collectors.joining());
             validationTokenBody = validationTokenBody.trim();
@@ -71,7 +69,6 @@ public class GraphWebhookServlet extends HttpServlet {
             }
         }
 
-        // 3. Process JSON request body
         StringBuilder sb = new StringBuilder();
         try (BufferedReader reader = req.getReader()) {
             String line;
@@ -119,7 +116,6 @@ public class GraphWebhookServlet extends HttpServlet {
             return;
         }
 
-        // Parse notifications for normal processing
         JSONArray valueArray = json.getJSONArray("value");
 
         AzureUserManager azureUserManager;
@@ -160,125 +156,7 @@ public class GraphWebhookServlet extends HttpServlet {
 
         resp.setStatus(HttpServletResponse.SC_ACCEPTED);
     }
-
     
-//    @Override
-//    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-//        try {
-//            String contentType = req.getContentType();
-//            int contentLength = req.getContentLength();
-//            System.out.println("Request Content-Type: " + contentType);
-//            System.out.println("Request Content-Length: " + contentLength);
-//
-//            // Handle subscription validation sent as plain text
-//            if ("text/plain".equalsIgnoreCase(contentType) && contentLength > 0) {
-//                String validationToken = req.getReader().lines().collect(Collectors.joining());
-//                System.out.println("Received plain text validation token: " + validationToken);
-//                resp.setStatus(HttpServletResponse.SC_OK);
-//                resp.setContentType("text/plain");
-//                resp.getWriter().write(validationToken);
-//                resp.getWriter().flush();
-//                return;
-//            }
-//
-//            BufferedReader reader = req.getReader();
-//            StringBuilder sb = new StringBuilder();
-//            String line;
-//            while ((line = reader.readLine()) != null) {
-//                sb.append(line).append("\n");
-//            }
-//            String payload = sb.toString().trim();
-//
-//            System.out.println("Received payload length: " + payload.length());
-//            System.out.println("Received payload: " + (payload.isEmpty() ? "<empty>" : payload));
-//
-//            if (payload.isEmpty()) {
-//                System.err.println("Empty request body received");
-//                resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-//                return;
-//            }
-//
-//            JSONObject json;
-//            try {
-//                json = new JSONObject(payload);
-//            } catch (Exception je) {
-//                System.err.println("Error parsing JSON payload: " + je.getMessage());
-//                je.printStackTrace();
-//                resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-//                return;
-//            }
-//
-//            // Check for validation token in payload
-//            String validationToken = null;
-//            if (json.has("validationToken")) {
-//                validationToken = json.getString("validationToken");
-//            } else if (json.has("value")) {
-//                JSONArray arr = json.getJSONArray("value");
-//                if (arr.length() > 0) {
-//                    JSONObject obj = arr.getJSONObject(0);
-//                    if (obj.has("validationToken")) {
-//                        validationToken = obj.getString("validationToken");
-//                    }
-//                }
-//            }
-//
-//            if (validationToken != null) {
-//                System.out.println("Subscription validation token found. Responding.");
-//                resp.setStatus(HttpServletResponse.SC_OK);
-//                resp.setContentType("text/plain");
-//                resp.getWriter().write(validationToken);
-//                resp.getWriter().flush();
-//                return;
-//            }
-//
-//            // Process notifications
-//            JSONArray valueArray = json.getJSONArray("value");
-//
-//            AzureUserManager azureUserManager;
-//            try {
-//                AzureCredentials creds = AzureCredentials.getFromDB();
-//                azureUserManager = new AzureUserManager(creds.tenantId, creds.clientId, creds.clientSecret);
-//            } catch (Exception e) {
-//                System.err.println("Failed to initialize AzureUserManager: " + e.getMessage());
-//                e.printStackTrace();
-//                resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-//                return;
-//            }
-//
-//            GraphHelper graphHelper = new GraphHelper(azureUserManager);
-//
-//            for (int i = 0; i < valueArray.length(); i++) {
-//                try {
-//                    JSONObject notification = valueArray.getJSONObject(i);
-//                    JSONObject resourceData = notification.getJSONObject("resourceData");
-//                    String userId = resourceData.getString("id");
-//
-//                    User userDetails = graphHelper.getUserDetailsById(userId);
-//                    String username = userDetails != null ? userDetails.userPrincipalName : "unknown";
-//
-//                    String generatedPassword = azureUserManager.resetUserPassword(userId);
-//                    if (generatedPassword != null) {
-//                        insertUserToDb(username, generatedPassword);
-//                        UserManager userManager = new UserManager();
-//                        userManager.createLocalUser(username, generatedPassword);
-//                    } else {
-//                        System.err.println("Failed to reset password for user " + username);
-//                    }
-//                } catch (Exception ex) {
-//                    System.err.println("Error processing change notification: " + ex.getMessage());
-//                    ex.printStackTrace();
-//                }
-//            }
-//
-//            resp.setStatus(HttpServletResponse.SC_ACCEPTED);
-//        } catch (Exception ex) {
-//            System.err.println("Unexpected error in webhook handler: " + ex.getMessage());
-//            ex.printStackTrace();
-//            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-//        }
-//    }
-
-
     private void insertUserToDb(String username, String password) {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
@@ -297,3 +175,4 @@ public class GraphWebhookServlet extends HttpServlet {
         }
     }
 }
+
